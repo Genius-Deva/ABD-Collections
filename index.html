@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ABD Collections</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+
+<!-- CART PANEL -->
+<div id="cart" class="cart-panel">
+  <h3>Your Cart</h3>
+  <div id="cartItems"></div>
+  <h4>Total: ₦<span id="cartTotal">0</span></h4>
+  <button onclick="checkout()">Checkout</button>
+</div>
+
+<!-- HEADER -->
+<header class="topbar">
+  <div class="imge">
+    <a href="#"><img src="./images/file_00000000725c71f4a1485b1f0d667c29.png" alt="Logo"></a>
+  </div>
+  <h1 class="logo"><a href="#">ABD Collections</a></h1>
+  <input type="text" placeholder="Search products..." />
+  <div class="auth-links">
+    <a href="./login.html">Login</a>
+    <a href="./signup.html" class="btn">Sign Up</a>
+  </div>
+  <div class="cart-icon" onclick="toggleCart()">
+    🛒 <span id="cartCount">0</span>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <h2>Flash Deals ⚡</h2>
+  <p>Best prices, trusted sellers</p>
+</section><br><br>
+
+<!-- FLASH SALE -->
+<section class="flashs"> 
+  <h3>🔥 Flash Sales</h3>
+  <p>Ends in <span id="timer"></span></p>
+</section>
+
+<!-- PRODUCTS CAROUSELS -->
+<section class="flashs">
+  <!-- <h3>🔥 Flash Sales</h3>
+  <p>Ends in <span id="timer"></span></p> -->
+  <div class="carousel" id="flashCarousel"></div>
+</section><br><br>
+
+<section class="section">
+  <div class="electronics">
+    <h3>📱 Electronics</h3>
+  </div>
+  <div class="carousel" id="electronicsCarousel"></div>
+</section>
+
+<section class="section">
+  <h3>👕 Fashion Deals</h3>
+  <div class="carousel" id="fashionCarousel"></div>
+</section>
+
+<!-- USER ORDER HISTORY -->
+<section class="section">
+  <h3>🧾 My Orders</h3>
+  <div id="orderList"></div>
+</section>
+
+<!-- ADMIN DASHBOARD -->
+<section class="section" id="adminSection" style="display:none;">
+  <h3>👨‍💻 Admin Dashboard</h3>
+  <div class="stats">
+    <div>Total Orders: <span id="totalOrders"></span></div>
+    <div>Total Revenue: ₦<span id="totalRevenue"></span></div>
+  </div>
+  <div id="adminOrders"></div>
+</section>
+
+<!-- PAY BUTTON TEST -->
+<!-- <button onclick="pay()">Pay ₦1,000</button> -->
+
+<!-- FOOTER -->
+<footer class="Last">
+  <p>© 2026 ABD Collections Marketplace</p>
+</footer>
+<button onclick="logout()">Logout</button>
+
+<script>
+function logout(){
+  localStorage.removeItem("role");
+  window.location.href = "./login.html";
+}
+</script>
+<script>
+  
+function login(){
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+
+  // ADMIN LOGIN
+  if(email === "admin@abd.com" && password === "admin123"){
+    localStorage.setItem("role", "admin");
+    window.location.href = "./index.html";
+    return;
+  }
+
+  // NORMAL USER LOGIN
+  if(email && password){
+    localStorage.setItem("role", "user");
+    window.location.href = "./index.html";
+    return;
+  }
+
+  alert("Invalid login details");
+}
+</script>
+
+<!-- PAYSTACK & APP JS -->
+<script src="https://js.paystack.co/v1/inline.js"></script>
+<script>
+// ===== GLOBAL VARIABLES =====
+const PAYSTACK_KEY = "pk_test_c45866c5be1986f3f209266085279469fdba5616";
+let cart = JSON.parse(localStorage.getItem("cart")) || [];
+let orders = JSON.parse(localStorage.getItem("orders")) || [];
+let products = [
+  {name:"BT Mouse", price:30000, image:"./images/imgi_55_1.jpg", category:"flash"},
+  {name:"Smart Watch 6", price:28000, image:"./images/imgi_45_1.jpg", category:"flash"},
+  {name:"Canvass Lite", price:22000, image:"./images/Canvass 3.jpeg", category:"flash"},
+  {name:"Canvass Pro", price:35000, image:"./images/Canvass 2.jpeg", category:"flash"},
+  {name:"Loafers", price:18000, image:"./images/IMG-20251125-WA0052(1).jpg", category:"electronics"},
+  {name:"Fashion Cap", price:25000, image:"./images/Cap 1.jpeg", category:"electronics"},
+  {name:"Men Sneakers", price:20000, image:"./images/Shirt.jpeg", category:"fashion"},
+  {name:"Ladies Bag", price:15000, image:"images/fashion2.jpg", category:"fashion"}
+];
+
+// ===== FLASH SALE TIMER =====
+document.addEventListener("DOMContentLoaded", () => {
+  const timerEl = document.getElementById("timer");
+  if(timerEl){
+    let end = new Date().getTime() + 6*60*60*1000; // 6 hours
+    setInterval(() => {
+      let diff = end - new Date().getTime();
+      if(diff <= 0){ timerEl.innerText = "Flash Sale Ended"; return; }
+      let h = Math.floor(diff/3600000);
+      let m = Math.floor((diff%3600000)/60000);
+      let s = Math.floor((diff%60000)/1000);
+      timerEl.innerText = `${h}h ${m}m ${s}s`;
+    },1000);
+  }
+
+  renderProducts();
+  renderCart();
+  renderOrders();
+  initCarousel();
+});
+
+// ===== RENDER PRODUCTS =====
+function renderProducts(){
+  const flashEl = document.getElementById("flashCarousel");
+  const electronicsEl = document.getElementById("electronicsCarousel");
+  const fashionEl = document.getElementById("fashionCarousel");
+  flashEl.innerHTML = electronicsEl.innerHTML = fashionEl.innerHTML = "";
+  products.forEach(p=>{
+    const card = `<div class="card">
+      <img src="${p.image}" alt="${p.name}">
+      <h4>${p.name}</h4>
+      <p class="price">₦${p.price}</p>
+      <button onclick="addToCart('${p.name}',${p.price},'${p.image}')">Add to Cart</button>
+    </div>`;
+    if(p.category==="flash") flashEl.innerHTML += card;
+    if(p.category==="electronics") electronicsEl.innerHTML += card;
+    if(p.category==="fashion") fashionEl.innerHTML += card;
+  });
+}
+
+// ===== CART FUNCTIONS =====
+function saveCart(){
+  localStorage.setItem("cart", JSON.stringify(cart));
+  renderCart();
+}
+
+function addToCart(name, price, image){
+  let item = cart.find(p=>p.name===name);
+  if(item) item.qty++;
+  else cart.push({name, price, image, qty:1});
+  saveCart();
+}
+
+function removeItem(name){
+  cart = cart.filter(p=>p.name!==name);
+  saveCart();
+}
+
+function renderCart(){
+  const items = document.getElementById("cartItems");
+  if(!items) return;
+  items.innerHTML = "";
+  let total=0;
+  cart.forEach(p=>{
+    total+=p.price*p.qty;
+    items.innerHTML += `<div class="cart-item">
+      <img src="${p.image}" alt="${p.name}">
+      <div>
+        <p>${p.name}</p>
+        <small>₦${p.price} × ${p.qty}</small>
+      </div>
+      <button onclick="removeItem('${p.name}')">×</button>
+    </div>`;
+  });
+  document.getElementById("cartTotal").innerText = total;
+  document.getElementById("cartCount").innerText = cart.length;
+}
+
+function toggleCart(){
+  document.getElementById("cart").classList.toggle("active");
+}
+
+// ===== PAYSTACK CHECKOUT =====
+function checkout(){
+  if(cart.length===0){ alert("Cart is empty"); return; }
+  let total = cart.reduce((sum,p)=>sum+p.price*p.qty,0);
+  let orderRef = "ORD_" + Date.now();
+  let handler = PaystackPop.setup({
+    key: PAYSTACK_KEY,
+    email:"customer@email.com",
+    amount: total*100,
+    currency:"NGN",
+    ref: orderRef,
+    callback:function(response){
+      alert("Payment successful! Ref: " + response.reference);
+      // SAVE ORDER
+      orders.push({ref:response.reference, items:cart, total:total, date:new Date().toLocaleString(), status:"Paid"});
+      localStorage.setItem("orders", JSON.stringify(orders));
+      cart=[]; saveCart(); renderOrders();
+    },
+    onClose:function(){ alert("Payment cancelled"); }
+  });
+  handler.openIframe();
+}
+
+// ===== TEST PAY BUTTON =====
+function pay(){
+  let handler = PaystackPop.setup({
+    key: PAYSTACK_KEY,
+    email:"test@email.com",
+    amount: 1000*100,
+    currency:"NGN",
+    ref: "TEST_" + Math.floor(Math.random()*1000000000),
+    callback:function(r){ alert("Payment successful! Ref: "+r.reference); },
+    onClose:function(){ alert("Payment closed"); }
+  });
+  handler.openIframe();
+}
+
+// ===== USER ORDER HISTORY =====
+function renderOrders(){
+  const orderList = document.getElementById("orderList");
+  orderList.innerHTML = "";
+  if(orders.length===0) orderList.innerHTML="<p>No orders yet</p>";
+  orders.forEach(o=>{
+    orderList.innerHTML += `<div class="order-card">
+      <p><strong>Order:</strong> ${o.ref}</p>
+      <p><strong>Total:</strong> ₦${o.total}</p>
+      <p><strong>Date:</strong> ${o.date}</p>
+      <p><strong>Status:</strong> ${o.status}</p>
+    </div>`;
+  });
+}
+
+// ===== ADMIN DASHBOARD =====
+function renderAdmin(){
+  const adminSec = document.getElementById("adminSection");
+  const totalOrdersEl = document.getElementById("totalOrders");
+  const totalRevenueEl = document.getElementById("totalRevenue");
+  const adminOrdersEl = document.getElementById("adminOrders");
+
+  totalOrdersEl.innerText = orders.length;
+  totalRevenueEl.innerText = orders.reduce((sum,o)=>sum+o.total,0);
+  adminOrdersEl.innerHTML = "";
+
+  orders.forEach((o,i)=>{
+    adminOrdersEl.innerHTML += `<div class="admin-order">
+      <p><strong>${o.ref}</strong> - ₦${o.total}</p>
+      <p>Status: ${o.status}</p>
+      <button onclick="deleteOrder(${i})">Delete</button>
+    </div>`;
+  });
+
+  adminSec.style.display="block";
+}
+
+function deleteOrder(i){
+  if(!confirm("Delete this order?")) return;
+  orders.splice(i,1);
+  localStorage.setItem("orders", JSON.stringify(orders));
+  renderOrders();
+  renderAdmin();
+}
+
+// ===== CAROUSEL =====
+function initCarousel(){
+  document.querySelectorAll(".carousel").forEach(c=>{
+    setInterval(()=>{
+      c.scrollLeft+=160;
+      if(c.scrollLeft+c.clientWidth>=c.scrollWidth) c.scrollLeft=0;
+    },4000);
+  });
+}
+
+document.addEventListener("DOMContentLoaded", ()=>{
+  const role = localStorage.getItem("role");
+
+  if(role === "admin"){
+    renderAdmin(); // show dashboard
+  }
+});
+</script>
+
+</body>
+</html>

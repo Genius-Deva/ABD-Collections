@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Admin Dashboard</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body class="auth-page">
+
+<div class="admin-box">
+  <h2>Admin – Add Product</h2>
+
+  <input id="pName" placeholder="Product Name">
+  <input id="pPrice" type="number" placeholder="Price (₦)">
+  <input id="pImage" placeholder="Image URL">
+  <select id="pCategory">
+    <option value="flash">Flash Sale</option>
+    <option value="electronics">Electronics</option>
+    <option value="fashion">Fashion</option>
+  </select>
+
+  <button onclick="addProduct()">Add Product</button>
+
+  <hr>
+  <h3>Uploaded Products</h3>
+  <div id="adminProducts"></div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

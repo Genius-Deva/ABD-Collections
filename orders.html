@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>My Orders</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h2>My Order History</h2>
+
+<div id="orderList"></div>
+
+<script src="app.js"></script>
+<script>
+let orders = JSON.parse(localStorage.getItem("orders")) || [];
+let box = document.getElementById("orderList");
+
+if(orders.length === 0){
+  box.innerHTML = "<p>No orders yet</p>";
+}
+
+orders.forEach(o=>{
+  box.innerHTML += `
+    <div class="order-card">
+      <h4>Order: ${o.ref}</h4>
+      <p>Email: ${o.email}</p>
+      <p>Date: ${o.date}</p>
+      <p>Total: ₦${o.total}</p>
+      <p>Status: ${o.status}</p>
+    </div>
+  `;
+});
+</script>
+
+</body>
+</html>
