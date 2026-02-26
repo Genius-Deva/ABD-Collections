@@ -7,7 +7,10 @@
   --bg: #f1f5f9;
 }
 
-body{background:#f4f6f8}
+body{background:#f4f6f8;
+background-image: url(./images/jumia\ background.jpg);
+
+}
 
 /* HEADER */
 .topbar{
@@ -83,6 +86,7 @@ body{background:#f4f6f8}
   margin-top:10px;
   padding:10px;
   width:100%;
+  /* margin: auto; */
   background:linear-gradient(90deg,blue,yellow);
   color:#fff;
   border:none;
@@ -207,7 +211,7 @@ body{background:#f4f6f8}
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 100%;
+  width: 80%;
   margin: auto;
   /* border: 2px solid black; */
   background-color:blue;
@@ -221,7 +225,7 @@ body{background:#f4f6f8}
   align-items: center;
   justify-content: center;
   padding: 5px;
-  width: 100%;
+  width: 80%;
   margin: auto;
   background-color: yellow;
 }
@@ -241,7 +245,7 @@ body{background:#f4f6f8}
   align-items: center;
   justify-content: space-around;
   background-color: yellow;
-  width: 100%;
+  width: 60%;
   margin: auto;
 }
 .imge img{
